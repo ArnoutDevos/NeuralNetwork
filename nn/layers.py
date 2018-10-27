@@ -1,6 +1,36 @@
 import numpy as np
+""" This file contains all classes that can act as a layer in the multi layer perceptron (MLP)
 
+They always have:
+1. an internal state of name, weights and their gradients
+2. a forward operation (for prediction):
+
+        Args:
+            feat: input features
+            
+        Returns:
+            output of the forward pass of dimension = output_dim
+            
+3. a backward operation (for backpropagation)
+        
+        Args:
+            dnext: gradients coming from next layer
+            
+        Returns:
+            the gradient with respect to the input (features)
+
+"""
 class FullyConnected(object):
+    """ Fully connected layer class, which keeps track of its parameters
+        and their gradients, and allows to do forward and backward passes.
+
+    Init args:
+        input_dim: how many inputs the fc layer should take
+        output_dim: how many output neurons there are
+        init_scale: factor to scale random initialization by, 0.02 by default
+        name: give a different name to every (fully connected) layer, "fc" by default
+
+    """
     def __init__(self, input_dim, output_dim, init_scale=0.02, name="fc"):
         self.name = name
         self.w_name = name + "_w"
@@ -55,6 +85,12 @@ class FullyConnected(object):
         return dfeat
     
 class relu(object):
+    """ Relu activation function layer
+
+    Init args:
+        name: give a different name to every layer, "relu" by default
+
+    """
     def __init__(self, name="relu"):
         
         self.name = name
@@ -80,7 +116,42 @@ class relu(object):
         self.feat = None
         return dfeat
     
+class sigmoid(object):
+    """ Sigmoid activation function layer
+
+    Init args:
+        name: give a different name to every layer, "sigmoid" by default
+
+    """
+    def __init__(self, name="sigmoid"):
+        
+        self.name = name
+        
+        self.params = {}
+        self.grads = {}
+        self.grads[self.name] = None
+        self.feat = None
+        
+    def forward(self, feat):
+        output = 1 / (1 + np.exp(-feat))
+        self.feat = feat
+        return output
+    
+    def backward(self, dnext):
+        feat = self.feat
+        if feat is None:
+            raise ValueError("Need to do foward pass first")
+        
+        dfeat = np.array(dnext, copy=True)
+        dfeat = np.multiply(self.forward(feat),(1 - self.forward(feat)))*dfeat
+        #dfeat[feat <= .0] = .0
+        
+        self.feat = None
+        return dfeat
+    
 class cross_entropy:
+    """ Cross entropy loss function defined as a layer           
+    """
     def __init__(self):
         self.dLoss = None
         self.label = None
@@ -107,6 +178,14 @@ class cross_entropy:
         return dLoss
     
 def softmax(feat):
+    """ Does not follow the layer pattern, but is used in the cross_entropy layer
+    
+        Args:
+            feat: input features
+            
+        Returns:
+            Softmax representation of input feat vector
+    """
     feat = (feat.T - np.max(feat, axis = 1)).T # To improve numerical stability
     
     scores = np.exp(feat)

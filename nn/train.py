@@ -3,7 +3,9 @@ from .layers import *
 from .utils import *
 from .optimization import *
 
-def train_net(labels, data, model, loss_function, optimizer, batch_size, max_epochs, show_every = 50000):
+def train_net(labels, data, model, loss_function, opt, lr, batch_size, max_epochs, show_every = 50000):
+    
+    model.reset()
     
     opt_val_acc = .0
     opt_params = None
@@ -14,7 +16,8 @@ def train_net(labels, data, model, loss_function, optimizer, batch_size, max_epo
     loss_hist = []
     train_acc_hist = []
     
-    iter = 0
+    optimizer = opt(model.net, lr)
+    
     for epoch in range(max_epochs):
         iter_start = epoch * iters_per_epoch
         iter_end = (epoch + 1) * iters_per_epoch
@@ -44,17 +47,16 @@ def train_net(labels, data, model, loss_function, optimizer, batch_size, max_epo
             # Save loss
             loss_hist.append(loss)
             
-            if iter % show_every == 0:
-                print("(Iteration {} / {}) loss: {}".format(iter+1, max_iters, loss_hist[-1]))
-                
-            iter += 1
+            #if iter % show_every == 0:
+            #    print("(Iteration {} / {}) loss: {}".format(iter+1, max_iters, loss_hist[-1]))
                 
         train_acc = compute_acc(model, data, labels, batch_size=batch_size)
         train_acc_hist.append(train_acc)
         
         opt_params = model.net.params
         
-        print("(Epoch {} / {}) Training Accuracy: {}".format(
-            epoch+1, max_epochs, train_acc))
+        if epoch % show_every == 0:
+            print("(Epoch {} / {}) Training Accuracy: {}".format(
+                epoch+1, max_epochs, train_acc))
     
-    return loss_hist, opt_params
+    return opt_params, loss_hist[-1]

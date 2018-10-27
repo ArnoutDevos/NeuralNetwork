@@ -4,29 +4,37 @@ from .layers import *
 
 
 class smallFullyConnected(object):
+    """ A deep neural network 2 hidden layer fully connected model, specified using the Serial class from the utils module.
     
+    Init args:
+        input_dim: input dimension, default = 30
+        hidden_neurons: how many neurons each hidden layer should have, default = 100
     """
-    def __init__(self, dropout_p=0, dtype=np.float32, seed=None):
+    def __init__(self, input_dim = 30, hidden_neurons = 100):
+        self.input_dim = input_dim
+        self.hidden_neurons = hidden_neurons
+        
         self.net = serial(
-            FullyConnected(4,30, name="fc1"),
-            relu(name="relu1"),
-            FullyConnected(30,7, name="fc2"),
-            relu(name="relu2")
-        )
-    
-    """
-    def __init__(self):
-        self.net = serial(
-        FullyConnected(30, 30, name = "fc1"),
+        FullyConnected(input_dim, hidden_neurons, name = "fc1"),
         relu(name="relu1"),
-        FullyConnected(30, 30, name = "fc2"),
+        FullyConnected(hidden_neurons, hidden_neurons, name = "fc2"),
         relu(name="relu2"),
-        FullyConnected(30, 30, name = "fc3"),
-        relu(name="relu3"),
-        FullyConnected(30, 2, name="fc4")
+        FullyConnected(hidden_neurons, 2, name = "fc3")
+        )
+        
+    def reset(self):
+        """ Reset allows to reinitialize parameters, without destroying the object itself or the need to recreate it"""
+        self.net = serial(
+        FullyConnected(self.input_dim, self.hidden_neurons, name = "fc1"),
+        relu(name="relu1"),
+        FullyConnected(self.hidden_neurons, self.hidden_neurons, name = "fc2"),
+        relu(name="relu2"),
+        FullyConnected(self.hidden_neurons, 2, name = "fc3")
         )
     
     def forward(self, feat):
+        """
+        """
         output = feat
         for layer in self.net.layers:
             output = layer.forward(output)
